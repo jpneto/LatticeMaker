@@ -1,0 +1,55 @@
+\documentclass[11pt]{article}
+\usepackage{geometry}
+\geometry{a4paper}
+
+\usepackage{auto-pst-pdf}
+\usepackage{pstricks}
+\usepackage{pstricks-add}
+\usepackage{pst-node}
+
+\newcommand{\Pow}[2]{{#1}^{#2}}
+\newcommand{\PowTo}[2]{{#1}^{-[#2]}}
+\newcommand{\Frac}[2]{\frac{#1}{#2}}
+\newcommand{\Tiny}[1]{+_{#1}}
+\newcommand{\Miny}[1]{-_{#1}}
+\newcommand{\UpGame}{\uparrow}
+\newcommand{\DownGame}{\downarrow}
+\newcommand{\StarGame}{\ast}
+\newcommand{\MoreLess}{\pm}
+
+\begin{document}
+
+\psset{unit=0.4cm}                % adjust space between nodes
+\begin{center}
+    \scalebox{0.75}{               % adjust overall scale
+        \begin{pspicture}(30,60)  % adjust area where lattice appears
+        \input{graph.tex}
+        \end{pspicture}
+    }
+	% Irreducible
+    \scalebox{0.75}{               % adjust overall scale
+        \begin{pspicture}(30,60)  % adjust area where lattice appears
+        \input{irreds.tex}
+        \end{pspicture}
+    }
+\end{center}
+
+\psset{unit=0.4cm}                % adjust space between nodes
+\begin{center}
+    \scalebox{0.75}{               % adjust overall scale
+        \begin{pspicture}(30,60)  % adjust area where lattice appears
+        \input{graph_tiny.tex}
+        \end{pspicture}
+    }
+    % Irreducible
+    \scalebox{0.75}{               % adjust overall scale
+        \begin{pspicture}(30,60)  % adjust area where lattice appears
+        \input{irreds_tiny.tex}
+        \end{pspicture}
+    }
+
+\end{center}
+
+\input{graph_labels.tex}
+
+\end{document}  

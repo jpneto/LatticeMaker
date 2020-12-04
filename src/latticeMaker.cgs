@@ -1,0 +1,261 @@
+/*
+  User Methods:
+  
+  nextDay(games): return all next day games based on the given list of games
+  makeDot(games): return a list of all pairs (g1,g2) such that g1<g2 and g1,g2 belongs to 'games'
+
+  Eg. create a lattice for the second day of game 0:
+  
+        games = [0];
+        d1 = nextDay(games);
+        d2 = nextDay(d1) >> out;
+        makeDot(d2) >> out;
+  
+  The script must produce exactly two lines. 
+    The first with the list of games
+    The second with the entire lattice information
+    
+  This must be placed at the end of this script!
+*/
+
+/**********************************************************************************************
+ * returns the antichains of the given game list
+ * an antichain is a subset of a partially ordered set such that any two elements
+ * in the subset are incomparable
+ *
+ * This is a NP-hard implementation, but it will be used for small sets
+ *  1) Create all game permutations
+ *  2) For each permutation p: insert it if it is an antichain
+ ****/
+antichains := proc (games)
+  local nGames, permSize, perm, p, result;
+  
+  nGames   = Length(games);
+  permSize = power2(nGames);
+  perm = seq(0, n=0..nGames);
+  result = [];
+  
+  for i from 1 to permSize do
+    
+    /* get subset of games for this permutation */
+    p = subset(perm, games);
+    
+    if isAntichain(p) then
+      Add(result, p);
+    fi;
+    
+    perm = nextPermutation(perm);
+  od;
+  
+  result
+end;
+
+/************************************************************************
+ * check if a list of games is an antichain 
+ */
+isAntichain := proc (games)
+  local i, j, result;
+  
+  result = true;
+  for i from 1 to Length(games) do
+    for j from i+1 to Length(games) do
+      if not (games[i]<>games[j]) then
+        result = false;
+      fi;
+    od;
+  od;
+  
+  result
+end;
+
+/************************************************************************
+ * Compute next permutation ([0,0,..,0] -> [1,0...] -> [0,1,...] -> ... -> [1,1,...1]
+ * pre: never receives permutation [1,1,...,1]
+ */
+nextPermutation := proc (perm)
+  local i, result;
+
+  i = 1;  
+  result = perm;
+
+  if result[i] == 0 then
+    result[i] = 1;
+  else
+    while result[i] == 1 do
+      result[i] = 0;
+      i = i +1;
+    od;
+    result[i] = 1;
+  fi;
+  
+  result
+end;
+
+/************************************************************************
+ * return a list of games included on a given permutation 
+ */
+subset := proc (perm, games)
+  local i, result;
+  
+  result = [];
+  for i from 1 to Length(perm) do
+    if perm[i] == 1 then
+      Add(result, games[i]);
+    fi;
+  od; 
+  result
+end;
+
+/********************* 2^n ***********************/
+power2 := proc (n)
+  local i, result;
+  
+  result = 1;
+  for i from 1 to n do
+    result = result + result;
+  od;
+  result
+end;
+
+/*************************************************************************
+ * Create game matrix given options (for both Left & Right)
+ ****/
+matrixGames := proc (games)
+  local i, j, table, header, line, nGames;
+
+  nGames = Length(games);
+
+  /* make matrix header */  
+  header = [];
+  Add(header, "{row | col}");
+  for i from 1 to nGames do
+    Add(header, games[i]);
+  od;
+  
+  table = CreateTable(1+nGames);
+  AddTableRow(table, header);
+
+  for i from 1 to nGames do    /* make matrix results, line by line */
+    line = [games[i]];
+    for j from 1 to nGames do
+      Add(line, C({games[i] | games[j]}) );
+    od;    
+    AddTableRow(table, line);
+  od;
+  
+  table
+end;
+
+/*************************************************************************
+ * Given a list of games, compare each other and make a table of results
+ * e.g.: matrixCompare([0,*,3,^,vv,^*])
+ ****/
+matrixCompare := proc (games)
+  local i, j, table, header, line, nGames;
+
+  nGames = Length(games);
+
+  /* make matrix header */  
+  header = [];
+  Add(header, "row 'op' col");
+  for i from 1 to nGames do
+    Add(header, games[i]);
+  od;
+  
+  table = CreateTable(1+nGames);
+  AddTableRow(table, header);
+
+  for i from 1 to nGames do    /* make matrix results, line by line */
+    line = [games[i]];
+    for j from 1 to i do
+      if   games[i] == games[j] then
+        Add(line, "=");
+      elif games[i] <  games[j] then
+        Add(line, "<");
+      elif games[i] >  games[j] then
+        Add(line, ">");
+      elif games[i] <> games[j] then
+        Add(line, "||");
+      fi;
+    od;    
+    AddTableRow(table, line);
+  od;
+  
+  table
+end;
+
+/*************************************************************************
+ * return a list of all pairs (g1,g2) such that g1<g2 and g1,g2 belongs to 'games'
+ ****/
+
+makeDot := proc (games)
+  local i, nGames, pairs;
+
+  nGames = Length(games);
+  pairs = [];
+  
+  for i from 1 to nGames do    /* make matrix results, line by line */
+    for j from 1 to nGames do
+      if games[i] < games[j] then
+        Add(pairs, games[i]);
+        Add(pairs, games[j]);
+      fi;
+    od;    
+  od;
+
+  pairs
+end;
+
+/*************************************************************************
+ * Remove duplicates from canonical list of games
+ ****/
+removeDuplicates := proc (games)
+  local result, find;
+  
+  result = [];
+  for i from 1 to Length(games) do
+   find = false;
+    for j from i+1 to Length(games) do
+      if games[i] == games[j] then
+        find = true;
+      fi;
+    od;    
+    if not find then
+      Add(result, games[i]);
+    fi;
+  od;  
+  
+  result
+end;
+
+/*************************************************************************
+ * Return all next day games based on the given games
+ ****/
+nextDay := proc (games)
+  local options;
+  
+  options = antichains(games);
+  allGames = [];
+  
+  for i from 1 to Length(options) do
+    for j from 1 to Length(options) do
+      Add(allGames, C({options[i] | options[j]}) );
+    od;    
+  od;  
+
+  /* This line, if uncommented, includes all games from the previous day */
+  /* Append(allGames, games); */
+  
+  removeDuplicates(allGames)
+end;
+
+/***************************************************************************/
+
+games = [0];
+
+/*games = [*,*2,*3,1*,1*2,1*3];*/
+
+d1 = nextDay(games);
+d2 = nextDay(d1) >> out;
+
+makeDot(d2) >> out;
